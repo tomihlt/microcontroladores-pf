@@ -9,8 +9,8 @@
 //////////////////////////////////
 // Configuración WiFi
 #ifdef WIFI
-  #define WIFI_SSID "fibertel wifi 817 2.4"
-  #define WIFI_PASSWORD "barhaulet1"
+  #define WIFI_SSID "ssid de la red"
+  #define WIFI_PASSWORD "pw"
   #define WIFI_CHANNEL 6
 #endif
 //////////////////////////////////
@@ -26,7 +26,7 @@
 #endif
 //////////////////////////////////
 
-#define ENDPOINT_URL "http://192.168.0.187:8080/turnero"
+#define ENDPOINT_URL "http://IP:8080/turnero"
 
 void setup() {
   Serial.begin(115200);
