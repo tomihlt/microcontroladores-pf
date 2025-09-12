@@ -67,8 +67,8 @@
 void setup() {
   Serial.begin(115200);
   delay(500);
-  // pinMode(LED_BUILTIN, OUTPUT); // Configura LED como salida
-  // digitalWrite(LED_BUILTIN, HIGH);
+  pinMode(LED_BUILTIN, OUTPUT); // Configura LED como salida
+  digitalWrite(LED_BUILTIN, HIGH);
   Serial.println("== ESP8266 BOOT ==");
 
   // Seteamos el internet
@@ -107,7 +107,7 @@ void setup() {
     Serial.println("Listo para leer llaveros NFC.");
   #endif
 
-  // digitalWrite(LED_BUILTIN, LOW); // Enciende el led, en el esp8266 el low es el high, ni idea por que
+  digitalWrite(LED_BUILTIN, LOW); // Enciende el led, en el esp8266 el low es el high, ni idea por que
 }
 
 void loop() {
