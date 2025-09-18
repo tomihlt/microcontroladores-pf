@@ -1,6 +1,6 @@
-// #define WIFI
-// #define NFC
-#define KEYPAD
+#define WIFI
+#define NFC
+// #define KEYPAD
 
 #ifdef WIFI
   #include <ESP8266WiFi.h>
@@ -14,18 +14,27 @@
   #include <Keypad.h>
 #endif
 
+// Pines seguros para GPIO
+#define D1   5    // GPIO5   -> OK para uso general
+#define D2   4    // GPIO4   -> OK para uso general
+#define D5   14   // GPIO14  -> OK para uso general (SCK)
+#define D6   12   // GPIO12  -> OK para uso general (MISO)
+#define D7   13   // GPIO13  -> OK para uso general (MOSI)
+#define D8   15   // GPIO15  -> cuidado: debe estar en LOW al boot, no recomendable para entradas
+
+// Pines problemáticos (boot mode)
+#define D0   16   // GPIO16  -> OK solo como salida, no tiene interrupciones
+#define D3   0    // GPIO0   -> ENTRADA al boot, si está en LOW el ESP no arranca
+#define D4   2    // GPIO2   -> Debe estar HIGH al boot, conectado al LED azul
+#define D8B  15   // GPIO15  -> Debe estar LOW al boot, no usar como entrada
+
+// Pines reservados (no usar salvo casos específicos)
+#define RX   3    // GPIO3   -> RX Serial
+#define TX   1    // GPIO1   -> TX Serial
+
 //////////////////////////////////
 // Configuración Keypad
-#ifdef KEYPAD
-  #define D8  15   // GPIO15  -   R1
-  #define D1   5   // GPIO5   -   R2
-  #define D2   4   // GPIO4   -   R3
-  #define D3   0   // GPIO0   -   R4
-  #define D4   2   // GPIO2   -   C1
-  #define D5  14   // GPIO14  -   C2
-  #define D6  12   // GPIO12  -   C3
-  #define D7  13   // GPIO13  -   C4
-  
+#ifdef KEYPAD  
   const uint8_t ROWS = 4;
   const uint8_t COLS = 4;
   char keys[ROWS][COLS] = {
@@ -45,8 +54,8 @@
 //////////////////////////////////
 // Configuración WiFi
 #ifdef WIFI
-  #define WIFI_SSID "ssid de la red"
-  #define WIFI_PASSWORD "pw"
+  #define WIFI_SSID "fibertel wifi 817 2.4"
+  #define WIFI_PASSWORD "barhaulet1"
   #define WIFI_CHANNEL 6
 #endif
 //////////////////////////////////
@@ -54,15 +63,15 @@
 //////////////////////////////////
 // Configuración del PN532
 #ifdef NFC
-  #define SDA_PIN 4  // D2
-  #define SCL_PIN 5  // D1
+  #define SDA_PIN D2  // D2
+  #define SCL_PIN D1  // D1
   #define PN532_IRQ   2   // cualquier pin libre
   #define PN532_RESET 3   // cualquier pin libre
   Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET, &Wire);
 #endif
 //////////////////////////////////
 
-#define ENDPOINT_URL "http://IP:8080/turnero"
+#define ENDPOINT_URL "http://192.168.0.187:8080/turnero"
 
 void setup() {
   Serial.begin(115200);
@@ -74,7 +83,7 @@ void setup() {
   // Seteamos el internet
   #ifdef WIFI
     Serial.printf("Conectando a la red WiFi: %s\n", WIFI_SSID);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD, WIFI_CHANNEL);
 
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
@@ -159,6 +168,7 @@ String uidToString(uint8_t *uid, uint8_t uidLength) {
     if (WiFi.status() == WL_CONNECTED) return; // ya está conectado
 
     Serial.println("WiFi desconectado, intentando reconectar...");
+    digitalWrite(LED_BUILTIN, HIGH); // Enciende el led, en el esp8266 el low es el high, ni idea por que
 
     WiFi.disconnect(); // fuerza desconexión previa
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD, WIFI_CHANNEL);
@@ -176,6 +186,7 @@ String uidToString(uint8_t *uid, uint8_t uidLength) {
       digitalWrite(LED_BUILTIN, LOW); // prender LED
       Serial.print("IP asignada: ");
       Serial.println(WiFi.localIP());
+      digitalWrite(LED_BUILTIN, LOW); // Enciende el led, en el esp8266 el low es el high, ni idea por que
     } else {
       Serial.println("\nNo se pudo reconectar al WiFi.");
       digitalWrite(LED_BUILTIN, HIGH); // apagar LED
