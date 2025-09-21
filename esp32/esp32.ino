@@ -1,6 +1,8 @@
 #define WIFI
 // #define NFC
 #define KEYPAD
+#define SSD1306
+#define BUZZER
 
 #ifdef WIFI
   #include <WiFi.h>
@@ -12,6 +14,10 @@
 #endif
 #ifdef KEYPAD
   #include <Keypad.h>
+#endif
+#ifdef SSD1306
+  #include <Adafruit_SSD1306.h>
+  #include <Adafruit_GFX.h>
 #endif
 
 // Pines recomendados para GPIO
@@ -30,7 +36,21 @@
 #define GPIO_KEYPAD_C3  4 // GPIO32 -> OK para uso general
 #define GPIO_KEYPAD_C4  16 // GPIO27 -> OK para uso general
 
-#define LED_BUILTIN 2 
+#define LED_BUILTIN 2
+
+#define BUZZER_PIN 25
+
+//////////////////////////////////
+// Configuración Pantall SSD1306
+#ifdef SSD1306
+  #define SCREEN_WIDTH 128
+  #define SCREEN_HEIGHT 64
+  #define OLED_RESET -1
+
+  Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+#endif
+//////////////////////////////////
+
 
 //////////////////////////////////
 // Configuración Keypad
@@ -49,7 +69,7 @@
 
   Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-  char szDni[8 + 1] = ""; // 8 digitos dni + '\0'
+  char szDni[15 + 1] = ""; // 15 digitos dni + '\0'
   uint8_t dniLen = 0;
 #endif
 //////////////////////////////////
@@ -75,7 +95,42 @@
 //////////////////////////////////
 
 #define ENDPOINT_URL_UID "http://192.168.0.187:8080/turnero"
-#define ENDPOINT_URL_DNI "http://192.168.0.187:5000/usuario"
+#define ENDPOINT_URL_DNI "http://72.60.1.76:8080/api/attendance/nfc/9551674a19bae81d4d27f5436470c9ee6ecd0b371088686f6afc58d6bf68df30"
+
+#ifdef SSD1306
+  void printDisplay(String text, int textSize = 2) {
+    display.clearDisplay();
+    display.setTextSize(textSize);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 0);
+    display.println(text);
+    display.display();
+  }
+
+  void mostrarOk(){
+    printDisplay("OK!", 4);
+    #ifdef BUZZER
+      digitalWrite(BUZZER_PIN, HIGH);
+    #endif
+    delay(500);
+    printDisplay("");
+    #ifdef BUZZER
+      digitalWrite(BUZZER_PIN, LOW);
+    #endif
+  }
+
+  void mostrarError(){
+    printDisplay("ERROR", 4);
+    #ifdef BUZZER
+      digitalWrite(BUZZER_PIN, HIGH);
+    #endif
+    delay(1500);
+    printDisplay("");
+    #ifdef BUZZER
+      digitalWrite(BUZZER_PIN, LOW);
+    #endif
+  }
+#endif
 
 void setup() {
   Serial.begin(115200);
@@ -84,8 +139,22 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
   Serial.println("== ESP32 BOOT ==");
 
+  #ifdef BUZZER
+    pinMode(BUZZER_PIN, OUTPUT);
+  #endif
+
+  #ifdef SSD1306
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+      // La mayoría de los módulos usan la dirección 0x3C
+      Serial.println(F("SSD1306 no encontrado"));
+    }
+  #endif
+
   // Seteamos el internet
   #ifdef WIFI
+    #ifdef SSD1306
+      printDisplay("Conectando a internet...");
+    #endif
     Serial.printf("Conectando a la red WiFi: %s\n", WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD); // El ESP32 no necesita el canal en begin()
 
@@ -97,6 +166,9 @@ void setup() {
     Serial.println("");
     Serial.printf("Conectado a %s\n", WIFI_SSID);
     Serial.print("IP asignada: ");
+    #ifdef SSD1306
+      printDisplay("Conectado a internet.", 2);
+    #endif
     Serial.println(WiFi.localIP());
   #endif
 
@@ -145,10 +217,19 @@ void loop() {
   #elif !defined(NFC) && defined(KEYPAD)
     char key = keypad.getKey();
     if(key != NO_KEY) {
-        szDni[dniLen] = key;
-        dniLen++;
-        szDni[dniLen] = '\0';
-        Serial.println(szDni);
+
+        if(key == '1' || key == '2' || key == '3' ||
+        key == '4' || key == '5' || key == '6' ||
+        key == '7' || key == '8' || key == '9' || key == '0'){
+          szDni[dniLen] = key;
+          dniLen++;
+          szDni[dniLen] = '\0';
+          Serial.println(szDni);
+        }
+        
+        #ifdef SSD1306
+          printDisplay(String(szDni));
+        #endif
         if(dniLen == sizeof(szDni) - 1){
           Serial.print("Enviando dni al back... [");
           Serial.print(szDni);
@@ -158,6 +239,21 @@ void loop() {
           #endif
           for(int i=0; i < sizeof(szDni); i++) szDni[i] = '\0';
           dniLen = 0;
+        }else if(key == 'A'){
+          Serial.print("Enviando dni al back... [");
+          Serial.print(szDni);
+          Serial.println("]");
+          #ifdef WIFI
+            sendAttendanceDni(szDni);
+          #endif
+          for(int i=0; i < sizeof(szDni); i++) szDni[i] = '\0';
+          dniLen = 0;
+        }else if(key == 'D'){
+          for(int i=0; i < sizeof(szDni); i++) szDni[i] = '\0';
+          dniLen = 0;
+          #ifdef SSD1306
+            printDisplay("");
+          #endif
         }
     }
   #else
@@ -229,11 +325,17 @@ String uidToString(uint8_t *uid, uint8_t uidLength) {
         String response = http.getString();
         Serial.print("Respuesta del servidor: ");
         Serial.println(response);
+        #ifdef SSD1306
+          mostrarOk();
+        #endif
       } else {
         Serial.printf("Respuesta inesperada: %d\n", httpCode);
         String errorResponse = http.getString();
         Serial.print("Error response: ");
         Serial.println(errorResponse);
+        #ifdef SSD1306
+          mostrarError();
+        #endif
       }
     } else {
       Serial.printf("Error de conexión: %s\n", http.errorToString(httpCode).c_str());
@@ -268,11 +370,17 @@ String uidToString(uint8_t *uid, uint8_t uidLength) {
         String response = http.getString();
         Serial.print("Respuesta del servidor: ");
         Serial.println(response);
+        #ifdef SSD1306
+          mostrarOk();
+        #endif
       } else {
         Serial.printf("Respuesta inesperada: %d\n", httpCode);
         String errorResponse = http.getString();
         Serial.print("Error response: ");
         Serial.println(errorResponse);
+        #ifdef SSD1306
+          mostrarError();
+        #endif
       }
     } else {
       Serial.printf("Error de conexión: %s\n", http.errorToString(httpCode).c_str());
