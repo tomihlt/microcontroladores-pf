@@ -77,8 +77,8 @@
 //////////////////////////////////
 // Configuración WiFi
 #ifdef WIFI
-  #define WIFI_SSID "fibertel wifi 817 2.4"
-  #define WIFI_PASSWORD "barhaulet1"
+  #define WIFI_SSID ""
+  #define WIFI_PASSWORD ""
   #define WIFI_CHANNEL 6
 #endif
 //////////////////////////////////
