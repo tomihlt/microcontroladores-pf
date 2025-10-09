@@ -75,8 +75,8 @@ uint8_t dniLen = 0;
 #endif
 
 #ifdef WIFI
-#define WIFI_SSID "fibertel wifi 817 2.4"
-#define WIFI_PASSWORD "barhaulet1"
+#define WIFI_SSID "gutierrez"
+#define WIFI_PASSWORD "claro5034"
 #endif
 
 #ifdef NFC
