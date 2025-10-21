@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "author": "Tomas",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 86.4, "left": 72.04, "attrs": {} },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad1",
+      "top": -366.8,
+      "left": -13.6,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-ili9341",
+      "id": "lcd1",
+      "top": -235.1,
+      "left": -306,
+      "rotate": 90,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "keypad1:R1", "esp:19", "#8f4814", [ "v48", "h144", "v134.4" ] ],
+    [ "keypad1:R2", "esp:18", "orange", [ "v28.8", "h162.8", "v153.6" ] ],
+    [ "keypad1:R3", "esp:5", "gold", [ "v38.4", "h134.1", "v153.6" ] ],
+    [ "keypad1:R4", "esp:17", "green", [ "v67.2", "h134.2", "v134.4" ] ],
+    [ "keypad1:C1", "esp:16", "blue", [ "v19.2", "h143.9", "v192" ] ],
+    [ "keypad1:C2", "esp:4", "violet", [ "v57.6", "h144", "v172.8" ] ],
+    [ "keypad1:C3", "esp:23", "cyan", [ "v76.8", "h67.05", "v67.2" ] ],
+    [ "keypad1:C4", "esp:22", "green", [ "v9.6", "h66.9", "v153.6" ] ],
+    [ "lcd1:VCC", "esp:5V", "red", [ "h-172.8", "v412.8" ] ],
+    [ "lcd1:GND", "esp:GND.1", "black", [ "h-124.8", "v355.2" ] ],
+    [ "lcd1:CS", "esp:15", "green", [ "h-153.6", "v470.4", "h720", "v-105.6" ] ],
+    [ "lcd1:RST", "esp:2", "orange", [ "h-67.2", "v432", "h652.8", "v-86.4" ] ],
+    [ "lcd1:D/C", "esp:27", "gold", [ "h-96", "v297.6" ] ],
+    [ "lcd1:MOSI", "esp:13", "blue", [ "h-134.4", "v326.39", "h566.25" ] ],
+    [ "lcd1:SCK", "esp:14", "cyan", [ "h-144", "v287.99" ] ],
+    [ "lcd1:MISO", "esp:12", "violet", [ "h-115.2", "v278.39" ] ]
+  ],
+  "dependencies": {}
+}
