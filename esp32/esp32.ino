@@ -30,15 +30,15 @@
 #define GPIO_PN532_IRQ 27
 #define GPIO_PN532_RESET 26
 
-#define GPIO_KEYPAD_R1 17
-#define GPIO_KEYPAD_R2 5
-#define GPIO_KEYPAD_R3 18
-#define GPIO_KEYPAD_R4 19
+#define GPIO_KEYPAD_R1 19
+#define GPIO_KEYPAD_R2 18
+#define GPIO_KEYPAD_R3 5
+#define GPIO_KEYPAD_R4 17
 
-#define GPIO_KEYPAD_C1 2
-#define GPIO_KEYPAD_C2 0
-#define GPIO_KEYPAD_C3 4
-#define GPIO_KEYPAD_C4 16
+#define GPIO_KEYPAD_C1 16
+#define GPIO_KEYPAD_C2 4
+#define GPIO_KEYPAD_C3 25
+#define GPIO_KEYPAD_C4 26
 
 #define LED_BUILTIN 2
 #define BUZZER_PIN 25
@@ -75,8 +75,10 @@ uint8_t dniLen = 0;
 #endif
 
 #ifdef WIFI
-#define WIFI_SSID "gutierrez"
-#define WIFI_PASSWORD "claro5034"
+// #define WIFI_SSID "GUTIERREZ_EXT"
+// #define WIFI_PASSWORD "claro5034"
+#define WIFI_SSID "fibertel wifi 817 2.4"
+#define WIFI_PASSWORD "barhaulet1"
 #endif
 
 #ifdef NFC
@@ -120,7 +122,7 @@ void showStatus(bool success) {
 void reconnectWiFi() {
     if (WiFi.status() == WL_CONNECTED) return;
     Serial.println("WiFi disconnected, attempting to reconnect...");
-    digitalWrite(LED_BUILTIN, HIGH);
+    // digitalWrite(LED_BUILTIN, HIGH);
     WiFi.disconnect();
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     unsigned long startAttemptTime = millis();
@@ -132,10 +134,10 @@ void reconnectWiFi() {
         Serial.println("\nReconnected to WiFi!");
         Serial.print("Assigned IP: ");
         Serial.println(WiFi.localIP());
-        digitalWrite(LED_BUILTIN, LOW);
+        // digitalWrite(LED_BUILTIN, LOW);
     } else {
         Serial.println("\nFailed to reconnect to WiFi.");
-        digitalWrite(LED_BUILTIN, HIGH);
+        // digitalWrite(LED_BUILTIN, HIGH);
     }
 }
 
@@ -203,14 +205,18 @@ void uidToString(uint8_t *uid, uint8_t uidLength, char* uidString, size_t buffer
 void setup() {
     Serial.begin(115200);
     delay(500);
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
+    // pinMode(LED_BUILTIN, OUTPUT);
+    // digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("== ESP32 BOOT ==");
 
     #ifdef BUZZER
     pinMode(BUZZER_PIN, OUTPUT);
     digitalWrite(BUZZER_PIN, LOW);
     #endif
+
+    // for (int i = 0; i < COLS; i++) {
+    //     pinMode(colPins[i], INPUT_PULLUP);
+    // }
 
     #ifdef SSD1306
     Wire.begin(GPIO_NFC_SDA, GPIO_NFC_SCL);
@@ -250,7 +256,7 @@ void setup() {
     Serial.println("Ready to read NFC keychains.");
     #endif
 
-    digitalWrite(LED_BUILTIN, LOW);
+    // digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop() {
