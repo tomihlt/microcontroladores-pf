@@ -49,6 +49,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 char szDni[13] = ""; // hasta 12 dígitos
 uint8_t dniLen = 0;
 char feedback[32] = "Feedback"; // Mensaje inicial
+char notes[41] = ""; // Notas
 
 void deleteDni() {
   szDni[0] = '\0';
@@ -113,6 +114,17 @@ void updateFeedback(int textSize = 1) {
   tft.setTextSize(textSize);
   tft.setCursor(60, 190);
   tft.println(feedback);
+}
+
+void updateNotes(int textSize = 1) {
+  // Limpia el área debajo del feedback
+  // Coordenadas: debajo del recuadro (que va de y=170 a y=220)
+  tft.fillRect(35, 225, 230, 30, ILI9341_BLACK);
+
+  tft.setTextColor(ILI9341_WHITE);   // o ILI9341_CYAN si querés mantener el color
+  tft.setTextSize(textSize);
+  tft.setCursor(40, 225);
+  tft.println(notes);
 }
 
 void clearScreen(uint16_t color = ILI9341_BLACK) {
@@ -192,52 +204,60 @@ void showWifiInfo() {
 }
 
 void sendAttendanceDni(const char* dni) {
-    if (WiFi.status() != WL_CONNECTED) {
-      Serial.println("Error: WiFi no conectado");
-      return;
-    }
-
-    WiFiClient client;
-    HTTPClient http;
-
-    http.begin(client, ENDPOINT_URL_DNI);
-    http.addHeader("Content-Type", "application/json");
-
-    String jsonPayload = "{\"dni\":\"" + String(dni) + "\"}";
-    Serial.print("Enviando attendance: ");
-    Serial.println(jsonPayload);
-
-    int httpCode = http.POST(jsonPayload);
-
-    if (httpCode > 0) {
-      Serial.printf("Código HTTP: %d\n", httpCode);
-      if (httpCode == HTTP_CODE_OK) {
-        String response = http.getString();
-        Serial.print("Respuesta del servidor: ");
-        Serial.println(response);
-        strcpy(feedback, "Asistencia registrada");
-        updateFeedback();
-      } else {
-        Serial.printf("Respuesta inesperada: %d\n", httpCode);
-        String errorResponse = http.getString();
-        Serial.print("Error response: ");
-        Serial.println(errorResponse);
-        strcpy(feedback, "Ocurrió un error inesperado");
-        updateFeedback();
-      }
-    } else {
-      Serial.printf("Error de conexión: %s\n", http.errorToString(httpCode).c_str());
-    }
-
-    http.end();
-
-    delay(2500);
-    deleteDni();
-    strcpy(feedback, "");
-    updateDni();
-    updateFeedback();
-    delay(1000);
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Error: WiFi no conectado");
+    return;
   }
+
+  WiFiClient client;
+  HTTPClient http;
+
+  http.begin(client, ENDPOINT_URL_DNI);
+  http.addHeader("Content-Type", "application/json");
+
+  String jsonPayload = "{\"dni\":\"" + String(dni) + "\"}";
+  Serial.print("Enviando attendance: ");
+  Serial.println(jsonPayload);
+
+  int httpCode = http.POST(jsonPayload);
+
+  if (httpCode > 0) {
+    Serial.printf("Código HTTP: %d\n", httpCode);
+    if (httpCode == HTTP_CODE_OK) {
+      String response = http.getString();
+      Serial.print("Respuesta del servidor: ");
+      Serial.println(response);
+      strcpy(feedback, "Asistencia cargada");
+      updateFeedback(2);
+    } else {
+      Serial.printf("Respuesta inesperada: %d\n", httpCode);
+      String errorResponse = http.getString();
+      Serial.print("Error response: ");
+      Serial.println(errorResponse);
+      strcpy(feedback, "Error inesperado");
+      updateFeedback(2);
+    }
+  } else {
+    Serial.printf("Error de conexión: %s\n", http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+
+  char key;
+  strcpy(notes, "Presiona una tecla para continuar...");
+  updateNotes();
+  while(true){
+    key = keypad.getKey();
+    if(key != NO_KEY) break;
+  }
+  deleteDni();
+  strcpy(feedback, "");
+  updateDni();
+  updateFeedback();
+  strcpy(notes, "");
+  updateNotes();
+  delay(1000);
+}
 
 void setup() {
   Serial.begin(115200);
