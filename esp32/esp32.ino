@@ -137,7 +137,7 @@ void sendAttendanceDni(const char* dni) {
 
 void showWifiStatus() {
   display.clearDisplay();
-  display.setTextSize(2);
+  display.setTextSize(1);
   display.setCursor(35, 20); // Centrado
   if (WiFi.status() == WL_CONNECTED) {
     display.setTextColor(SSD1306_WHITE);
