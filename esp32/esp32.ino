@@ -63,6 +63,13 @@ void deleteDni() {
   dniLen = 0;
 }
 
+void deleteLastLetter() { 
+  if(dniLen > 0){
+    dniLen--;
+    szDni[dniLen] = '\0';
+  }
+}
+
 // --- FUNCIONES DE PANTALLA MEJORADAS ---
 void updateDniDisplay() {
   // Limpia solo el área donde se escribe el DNI
@@ -128,6 +135,64 @@ void sendAttendanceDni(const char* dni) {
   deleteDni(); // Limpia el DNI después de enviar
 }
 
+void showWifiStatus() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(35, 20); // Centrado
+  if (WiFi.status() == WL_CONNECTED) {
+    display.setTextColor(SSD1306_WHITE);
+    display.println("Conectado");
+  } else {
+    display.setTextColor(SSD1306_WHITE);
+    display.println("Desconectado");
+  }
+  display.display();
+  delay(900); // <-- DELAY REDUCIDO
+
+  // Después de mostrar el estado, vuelve a la pantalla principal
+  drawMainLayout();
+  updateDniDisplay();
+}
+
+/**
+ * @brief Intenta reconectar a la red Wi-Fi si la conexión se ha perdido.
+ * Muestra el estado en la pantalla.
+ */
+void reconnectWiFi() {
+  // Si ya está conectado, no hace falta hacer nada.
+  if (WiFi.status() == WL_CONNECTED) {
+    return;
+  }
+
+  Serial.println("Conexión perdida. Intentando reconectar...");
+  
+  // Muestra un mensaje en la pantalla
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(10, 20);
+  display.println("Reconectando a WiFi...");
+  display.display();
+  
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  // Espera a que se conecte, con un timeout de 10 segundos
+  unsigned long startAttemptTime = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  // Comprueba el resultado después del intento
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\n¡Reconexión exitosa!");
+    showStatus(true); // Muestra "OK!"
+  } else {
+    Serial.println("\nFallo al reconectar.");
+    showStatus(false); // Muestra "ERROR"
+  }
+}
+
 // --- PROGRAMA PRINCIPAL ---
 void setup() {
   Serial.begin(115200);
@@ -176,7 +241,16 @@ void loop() {
     } else if (key == 'A') {
       if (dniLen > 0) {
         sendAttendanceDni(szDni);
+        updateDniDisplay();
       }
+    }else if(key == 'B') {
+      deleteLastLetter();
+      updateDniDisplay();
+    }else if(key == '*') {
+      showWifiStatus();
+    }else if(key == '#') {
+      reconnectWiFi();
     }
+    
   }
 }
