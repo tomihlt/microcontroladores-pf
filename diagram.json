@@ -38,7 +38,8 @@
     [ "lcd1:D/C", "esp:27", "gold", [ "h-96", "v297.6" ] ],
     [ "lcd1:MOSI", "esp:13", "blue", [ "h-134.4", "v326.39", "h566.25" ] ],
     [ "lcd1:SCK", "esp:14", "cyan", [ "h-144", "v287.99" ] ],
-    [ "lcd1:MISO", "esp:12", "violet", [ "h-115.2", "v278.39" ] ]
+    [ "lcd1:MISO", "esp:12", "violet", [ "h-115.2", "v278.39" ] ],
+    [ "lcd1:LED", "esp:3V3", "red", [ "h-38.4", "v182.39" ] ]
   ],
   "dependencies": {}
 }
